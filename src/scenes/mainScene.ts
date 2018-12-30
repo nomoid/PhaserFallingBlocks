@@ -1,4 +1,5 @@
 import 'phaser';
+import Block from "../block";
 
 import phaserPng from '../assets/phaser.png';
 
