@@ -1,10 +1,30 @@
+import 'phaser';
+
+type Graphics = Phaser.GameObjects.Graphics;
+
 export class Block {
-  public type: BlockType; // integer 0 - 6
+  public type: BlockType;
+  // Grid position x
+  public x: number = 0;
+  // Grid position y
+  public y: number = 0;
+  // Rotation
+  public rotation: number = 0;
 
   public constructor(type: BlockType) {
     this.type = type;
   }
+
+  public fill(filler: (x: number, y: number) => void) {
+    blockTypeToCoords(this.type).forEach(([relX, relY]) => {
+      filler(this.x + relX, this.y + relY);
+    });
+  }
 }
+
+// Tetromino types
+
+const typeCount = 7;
 
 export enum BlockType {
   I,
@@ -35,4 +55,8 @@ export function blockTypeToCoords(type: BlockType): Array<[number, number]> {
     case BlockType.Z:
       return [[-1, 0], [0, 0], [0, 1], [1, 1]];
   }
+}
+
+export function randomBlockType(): BlockType {
+  return Math.floor(Math.random() * typeCount);
 }
