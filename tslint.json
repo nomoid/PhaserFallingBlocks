@@ -12,7 +12,10 @@
       "no-bitwise": true,
       "no-conditional-assignment": true,
       "no-consecutive-blank-lines": true,
-      "object-literal-sort-keys": false
+      "object-literal-sort-keys": false,
+      "trailing-comma": false,
+      "one-line": [true, "check-open-brace"],
+      "align": [true, "statements", "members"]
     },
     "jsRules": {
       "max-line-length": {
