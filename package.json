@@ -1,7 +1,7 @@
 {
-  "name": "PhaserTemplate",
+  "name": "PhaserFallingBlocks",
   "version": "0.0.0",
-  "description": "Phaser game template",
+  "description": "Phaser implementation of a popular game with falling tetrominoes",
   "main": "build/main.js",
   "scripts": {
     "postinstall": "electron-builder install-app-deps",

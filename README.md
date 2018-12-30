@@ -1,5 +1,5 @@
-# PhaserTemplate
-Phaser game template
+# PhaserFallingBlocks
+Phaser implementation of a popular game with falling tetrominoes
 
 Template from [phaser-electron-typescript-parcel](https://github.com/distantcam/phaser-electron-typescript-parcel)
 
