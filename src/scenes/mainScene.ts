@@ -13,7 +13,8 @@ const worldScale = 25;
 const gridLineWidth = 2;
 // Initial number of ms between updates
 const initialUpdateDelay = 500;
-const initialInputDelay = initialUpdateDelay / 4;
+const initialInputDelay = 100;
+const inputDelayRatio = 2;
 // 0, 0 of grid is top left corner
 let worldOffsetX: number;
 let worldOffsetY: number;
@@ -23,11 +24,8 @@ export class MainScene extends Phaser.Scene {
   private graphics!: Graphics;
   private block!: Block;
   private grid!: Grid;
-  private keyLeftDown: boolean = false;
   private keyLeft!: Phaser.Input.Keyboard.Key;
-  private keyRightDown: boolean = false;
   private keyRight!: Phaser.Input.Keyboard.Key;
-  private keyUpDown: boolean = false;
   private keyUp!: Phaser.Input.Keyboard.Key;
 
   // Update timer counts up in ms
@@ -40,7 +38,6 @@ export class MainScene extends Phaser.Scene {
   // is, the input occurs and the input timer is set to the input delay. The
   // last input timer is used for repeating key delay.
   private inputTimer: number = 0;
-  private lastInputTimer: number = 0;
   private inputDelay: number = initialInputDelay;
 
   constructor() {
@@ -117,21 +114,18 @@ export class MainScene extends Phaser.Scene {
     }
     // Try moving left, moving right, or rotating. Delay check includes key
     // repeats
-    const mover = (updater: (x: number) => void,
-        name: 'keyUpDown' | 'keyLeftDown' | 'keyRightDown') => {
-      if (this.inputTimer === 0) {
-        updater(1);
-        if (this.checkBlockValid()) {
-          if (this[name]) {
-            this.inputTimer = this.inputDelay / 4;
-          }
-          else {
+    const mover = (updater: (x: number) => void, timeDownPassed: number) => {
+      // Make key repeat feel natural
+      if (timeDownPassed < this.inputDelay ||
+        timeDownPassed > this.inputDelay * inputDelayRatio) {
+        if (this.inputTimer === 0) {
+          updater(1);
+          if (this.checkBlockValid()) {
             this.inputTimer = this.inputDelay;
           }
-          this[name] = true;
-        }
-        else {
-          updater(-1);
+          else {
+            updater(-1);
+          }
         }
       }
     };
@@ -139,27 +133,17 @@ export class MainScene extends Phaser.Scene {
     const keyLeft = this.keyLeft;
     const keyRight = this.keyRight;
     if (keyUp.isDown) {
+      const timeDownPassed = this.time.now - keyUp.timeDown;
       // Bind to make sure context is the block
-      mover(this.block.rotate.bind(this.block), 'keyUpDown');
+      mover(this.block.rotate.bind(this.block), timeDownPassed);
     }
-    else {
-      this.keyUpDown = false;
-    }
-    if (keyLeft.isDown) {
-      if (!keyRight.isDown){
-        mover((dx: number) => this.block.x -= dx, 'keyLeftDown');
-      }
-    }
-    else {
-      this.keyLeftDown = false;
+    if (keyLeft.isDown && !keyRight.isDown) {
+      const timeDownPassed = this.time.now - keyLeft.timeDown;
+      mover((dx: number) => this.block.x -= dx, timeDownPassed);
     }
     if (keyRight.isDown && !keyLeft.isDown) {
-      if (!keyLeft.isDown) {
-        mover((dx: number) => this.block.x += dx, 'keyRightDown');
-      }
-    }
-    else {
-      this.keyRightDown = false;
+      const timeDownPassed = this.time.now - keyRight.timeDown;
+      mover((dx: number) => this.block.x += dx, timeDownPassed);
     }
   }
 
