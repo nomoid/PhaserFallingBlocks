@@ -27,6 +27,7 @@ export class MainScene extends Phaser.Scene {
   private keyLeft!: Phaser.Input.Keyboard.Key;
   private keyRight!: Phaser.Input.Keyboard.Key;
   private keyUp!: Phaser.Input.Keyboard.Key;
+  private keyDown!: Phaser.Input.Keyboard.Key;
 
   // Update timer counts up in ms
   // When update time reaches update delay, it subtracts off the delay and an
@@ -65,6 +66,7 @@ export class MainScene extends Phaser.Scene {
     this.keyLeft = this.input.keyboard.addKey(keyCodes.LEFT);
     this.keyRight = this.input.keyboard.addKey(keyCodes.RIGHT);
     this.keyUp = this.input.keyboard.addKey(keyCodes.UP);
+    this.keyDown = this.input.keyboard.addKey(keyCodes.DOWN);
   }
 
   public update(time: number, delta: number) {
@@ -132,18 +134,26 @@ export class MainScene extends Phaser.Scene {
     const keyUp = this.keyUp;
     const keyLeft = this.keyLeft;
     const keyRight = this.keyRight;
+    const keyDown = this.keyDown;
     if (keyUp.isDown) {
       const timeDownPassed = this.time.now - keyUp.timeDown;
       // Bind to make sure context is the block
       mover(this.block.rotate.bind(this.block), timeDownPassed);
     }
-    if (keyLeft.isDown && !keyRight.isDown) {
+    else if (keyLeft.isDown && !keyRight.isDown) {
       const timeDownPassed = this.time.now - keyLeft.timeDown;
       mover((dx: number) => this.block.x -= dx, timeDownPassed);
     }
-    if (keyRight.isDown && !keyLeft.isDown) {
+    else if (keyRight.isDown && !keyLeft.isDown) {
       const timeDownPassed = this.time.now - keyRight.timeDown;
       mover((dx: number) => this.block.x += dx, timeDownPassed);
+    }
+    else if (keyDown.isDown) {
+      if (this.inputTimer === 0) {
+        while (!this.executeUpdate()) {
+          // Drop it downwards until it freezes
+        }
+        this.inputTimer = this.inputDelay;
     }
   }
 
@@ -155,6 +165,7 @@ export class MainScene extends Phaser.Scene {
     }
   }
 
+  // Return true if block is frozen
   private executeUpdate() {
     // Move the block down and check if a collision occurs
     this.block.y += 1;
@@ -164,7 +175,9 @@ export class MainScene extends Phaser.Scene {
       this.grid.fill(this.block.getFilled());
       this.makeNewBlock();
       this.updateTimer = 0;
+      return true;
     }
+    return false;
   }
 
   // false: invalid space
