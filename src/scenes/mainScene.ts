@@ -23,8 +23,12 @@ export class MainScene extends Phaser.Scene {
   private graphics!: Graphics;
   private block!: Block;
   private grid!: Grid;
+  private keyLeftDown: boolean = false;
   private keyLeft!: Phaser.Input.Keyboard.Key;
+  private keyRightDown: boolean = false;
   private keyRight!: Phaser.Input.Keyboard.Key;
+  private keyUpDown: boolean = false;
+  private keyUp!: Phaser.Input.Keyboard.Key;
 
   // Update timer counts up in ms
   // When update time reaches update delay, it subtracts off the delay and an
@@ -32,9 +36,11 @@ export class MainScene extends Phaser.Scene {
   private updateTimer: number = 0;
   private updateDelay: number = initialUpdateDelay;
   // Input timer counts down in ms
-  // When a left or right input occurs, it checks the the input timer is zero.
-  // If it is, it sets the input timer to the input delay
+  // When a keyboard input occurs, it check if the input timer is zero. If it
+  // is, the input occurs and the input timer is set to the input delay. The
+  // last input timer is used for repeating key delay.
   private inputTimer: number = 0;
+  private lastInputTimer: number = 0;
   private inputDelay: number = initialInputDelay;
 
   constructor() {
@@ -61,12 +67,7 @@ export class MainScene extends Phaser.Scene {
     const keyCodes = Phaser.Input.Keyboard.KeyCodes;
     this.keyLeft = this.input.keyboard.addKey(keyCodes.LEFT);
     this.keyRight = this.input.keyboard.addKey(keyCodes.RIGHT);
-    this.input.keyboard.on('keydown_UP', (event: any) => {
-      this.block.rotate(1);
-      if (!this.checkBlockValid()) {
-        this.block.rotate(-1);
-      }
-    });
+    this.keyUp = this.input.keyboard.addKey(keyCodes.UP);
   }
 
   public update(time: number, delta: number) {
@@ -114,27 +115,51 @@ export class MainScene extends Phaser.Scene {
     if (this.inputTimer < 0) {
       this.inputTimer = 0;
     }
-    const mover = (dx: number) => {
+    // Try moving left, moving right, or rotating. Delay check includes key
+    // repeats
+    const mover = (updater: (x: number) => void,
+        name: 'keyUpDown' | 'keyLeftDown' | 'keyRightDown') => {
       if (this.inputTimer === 0) {
-        this.block.x += dx;
+        updater(1);
         if (this.checkBlockValid()) {
-          this.inputTimer = this.inputDelay;
+          if (this[name]) {
+            this.inputTimer = this.inputDelay / 4;
+          }
+          else {
+            this.inputTimer = this.inputDelay;
+          }
+          this[name] = true;
         }
         else {
-          this.block.x -= dx;
+          updater(-1);
         }
       }
     };
+    const keyUp = this.keyUp;
     const keyLeft = this.keyLeft;
     const keyRight = this.keyRight;
-    if (keyLeft.isDown && keyRight.isDown) {
-      // Do nothing
+    if (keyUp.isDown) {
+      // Bind to make sure context is the block
+      mover(this.block.rotate.bind(this.block), 'keyUpDown');
     }
-    else if (keyLeft.isDown) {
-      mover(-1);
+    else {
+      this.keyUpDown = false;
     }
-    else if (keyRight.isDown) {
-      mover(1);
+    if (keyLeft.isDown) {
+      if (!keyRight.isDown){
+        mover((dx: number) => this.block.x -= dx, 'keyLeftDown');
+      }
+    }
+    else {
+      this.keyLeftDown = false;
+    }
+    if (keyRight.isDown && !keyLeft.isDown) {
+      if (!keyLeft.isDown) {
+        mover((dx: number) => this.block.x += dx, 'keyRightDown');
+      }
+    }
+    else {
+      this.keyRightDown = false;
     }
   }
 
