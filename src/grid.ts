@@ -7,15 +7,13 @@ export class Grid {
 
   // Returns an array of spaces that are filled in the grid
   public getFilled(): Array<[number, number]> {
-    const coords: Array<[number, number]> = [];
-    for (let i = 0; i < gridWidth; i++) {
-      for (let j = 0; j < gridHeight; j++) {
-        if (this.spaces[i][j]) {
-          coords.push([i, j]);
-        }
-      }
-    }
-    return coords;
+    return allCoords(gridWidth, gridHeight)
+      .filter(([x, y]) => this.spaces[x][y]);
+  }
+
+  public getEmpty(): Array<[number, number]> {
+    return allCoords(gridWidth, gridHeight)
+      .filter(([x, y]) => !this.spaces[x][y]);
   }
 }
 
@@ -29,4 +27,14 @@ function populateGrid(width: number, height: number): boolean[][] {
     }
   }
   return arr;
+}
+
+function allCoords(width: number, height: number): Array<[number, number]> {
+  const coords: Array<[number, number]> = [];
+  for (let i = 0; i < gridWidth; i++) {
+    for (let j = 0; j < gridHeight; j++) {
+      coords.push([i, j]);
+    }
+  }
+  return coords;
 }

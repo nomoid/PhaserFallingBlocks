@@ -8,7 +8,9 @@ import phaserPng from '../assets/phaser.png';
 type Graphics = Phaser.GameObjects.Graphics;
 
 // Size of a grid space
-const worldScale = 20;
+const worldScale = 25;
+// Size of line between blocks
+const gridLineWidth = 2;
 // 0, 0 of grid is top left corner
 let worldOffsetX: number;
 let worldOffsetY: number;
@@ -49,8 +51,8 @@ export class MainScene extends Phaser.Scene {
   private render() {
     const graphics = this.graphics;
     graphics.clear();
-    this.renderBlock();
     this.renderGrid();
+    this.renderBlock();
   }
 
   private renderBlock() {
@@ -58,7 +60,22 @@ export class MainScene extends Phaser.Scene {
   }
 
   private renderGrid() {
+    // Render grid lines - do this by rendering complete area as a rectangle
+    // and then rendering empty grid spaces
+    this.renderGridBackground();
+    this.grid.getEmpty().forEach(fillBlocks(this.graphics, 0x000000));
+    // Render filled grid spaces
     this.grid.getFilled().forEach(fillBlocks(this.graphics, 0x00007f));
+  }
+
+  private renderGridBackground() {
+    const graphics = this.graphics;
+    const [startX, startY] = gridToWorldPos(0, 0);
+    const [endX, endY] = gridToWorldPos(gridWidth, gridHeight);
+    const width = endX - startX;
+    const height = endY - startY;
+    graphics.fillStyle(0x3f3f3f, 1);
+    graphics.fillRect(startX, startY, width, height);
   }
 }
 
@@ -70,6 +87,9 @@ function fillBlocks(graphics: Graphics, rgb: number) {
   return ([x, y]: [number, number]) => {
     const [worldX, worldY] = gridToWorldPos(x, y);
     graphics.fillStyle(rgb, 1);
-    graphics.fillRect(worldX, worldY, worldScale, worldScale);
+    const blockX = worldX + gridLineWidth / 2;
+    const blockY = worldY + gridLineWidth / 2;
+    const blockSize = worldScale - gridLineWidth;
+    graphics.fillRect(blockX, blockY, blockSize, blockSize);
   };
 }
