@@ -19,6 +19,27 @@ export class Grid {
       this.spaces[x][y] = true;
     }
   }
+
+  public tryClear() {
+    // Start from bottom row
+    for (let i = gridHeight - 1; i >= 0; i--) {
+      // Check if row is filled
+      let full = true;
+      for (let j = 0; j < gridWidth; j++) {
+        if (!this.spaces[j][i]) {
+          full = false;
+        }
+      }
+      // If row is filled, clear and shift everything down
+      if (full) {
+        for (let k = i - 1; k >= 0; k--) {
+          for (let j = 0; j < gridWidth; j++) {
+            this.spaces[j][k + 1] = this.spaces[j][k];
+          }
+        }
+      }
+    }
+  }
 }
 
 // Populate an empty grid

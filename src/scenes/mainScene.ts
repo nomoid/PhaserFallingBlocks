@@ -149,11 +149,13 @@ export class MainScene extends Phaser.Scene {
       mover((dx: number) => this.block.x += dx, timeDownPassed);
     }
     else if (keyDown.isDown) {
-      if (this.inputTimer === 0) {
+      const timeDownPassed = this.time.now - keyDown.timeDown;
+      if (this.inputTimer === 0 && timeDownPassed < this.inputDelay ) {
         while (!this.executeUpdate()) {
           // Drop it downwards until it freezes
         }
         this.inputTimer = this.inputDelay;
+      }
     }
   }
 
@@ -173,6 +175,7 @@ export class MainScene extends Phaser.Scene {
     if (!this.checkBlockValid()) {
       this.block.y -= 1;
       this.grid.fill(this.block.getFilled());
+      this.grid.tryClear();
       this.makeNewBlock();
       this.updateTimer = 0;
       return true;
