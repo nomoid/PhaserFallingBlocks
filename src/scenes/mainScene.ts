@@ -61,6 +61,12 @@ export class MainScene extends Phaser.Scene {
     const keyCodes = Phaser.Input.Keyboard.KeyCodes;
     this.keyLeft = this.input.keyboard.addKey(keyCodes.LEFT);
     this.keyRight = this.input.keyboard.addKey(keyCodes.RIGHT);
+    this.input.keyboard.on('keydown_UP', (event: any) => {
+      this.block.rotate(1);
+      if (!this.checkBlockValid()) {
+        this.block.rotate(-1);
+      }
+    });
   }
 
   public update(time: number, delta: number) {
