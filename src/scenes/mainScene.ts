@@ -1,5 +1,5 @@
 import 'phaser';
-import { Block, randomBlockType, coordIndexOf } from '../block';
+import { Block, randomBlockType } from '../block';
 import { screenWidth, screenHeight } from '../game';
 import { Grid, allCoords, gridWidth, gridHeight } from '../grid';
 
@@ -13,17 +13,29 @@ const worldScale = 25;
 const gridLineWidth = 2;
 // Initial number of ms between updates
 const initialUpdateDelay = 500;
+const initialInputDelay = initialUpdateDelay / 4;
 // 0, 0 of grid is top left corner
 let worldOffsetX: number;
 let worldOffsetY: number;
 
 export class MainScene extends Phaser.Scene {
-  private image!: Phaser.GameObjects.Image;
+  // Properties set during create
   private graphics!: Graphics;
   private block!: Block;
   private grid!: Grid;
+  private keyLeft!: Phaser.Input.Keyboard.Key;
+  private keyRight!: Phaser.Input.Keyboard.Key;
+
+  // Update timer counts up in ms
+  // When update time reaches update delay, it subtracts off the delay and an
+  // update occurs
   private updateTimer: number = 0;
   private updateDelay: number = initialUpdateDelay;
+  // Input timer counts down in ms
+  // When a left or right input occurs, it checks the the input timer is zero.
+  // If it is, it sets the input timer to the input delay
+  private inputTimer: number = 0;
+  private inputDelay: number = initialInputDelay;
 
   constructor() {
     super({ key: 'MainScene' });
@@ -45,10 +57,15 @@ export class MainScene extends Phaser.Scene {
     this.input.on('pointerdown', (event: any) => {
       this.makeNewBlock();
     });
+
+    const keyCodes = Phaser.Input.Keyboard.KeyCodes;
+    this.keyLeft = this.input.keyboard.addKey(keyCodes.LEFT);
+    this.keyRight = this.input.keyboard.addKey(keyCodes.RIGHT);
   }
 
   public update(time: number, delta: number) {
     this.render();
+    this.updateInput(delta);
     this.updateBlock(delta);
   }
 
@@ -64,16 +81,16 @@ export class MainScene extends Phaser.Scene {
   }
 
   private renderBlock() {
-    this.block.getFilled().forEach(fillBlocks(this.graphics, 0x0000ff));
+    this.block.getFilled().forEach(renderSpaces(this.graphics, 0x0000ff));
   }
 
   private renderGrid() {
     // Render grid lines - do this by rendering complete area as a rectangle
     // and then rendering empty grid spaces
     this.renderGridBackground();
-    this.grid.getEmpty().forEach(fillBlocks(this.graphics, 0x000000));
+    this.grid.getEmpty().forEach(renderSpaces(this.graphics, 0x000000));
     // Render filled grid spaces
-    this.grid.getFilled().forEach(fillBlocks(this.graphics, 0x7f7fff));
+    this.grid.getFilled().forEach(renderSpaces(this.graphics, 0x7f7fff));
   }
 
   private renderGridBackground() {
@@ -84,6 +101,35 @@ export class MainScene extends Phaser.Scene {
     const height = endY - startY;
     graphics.fillStyle(0x3f3f3f, 1);
     graphics.fillRect(startX, startY, width, height);
+  }
+
+  private updateInput(delta: number) {
+    this.inputTimer -= delta;
+    if (this.inputTimer < 0) {
+      this.inputTimer = 0;
+    }
+    const mover = (dx: number) => {
+      if (this.inputTimer === 0) {
+        this.block.x += dx;
+        if (this.checkBlockValid()) {
+          this.inputTimer = this.inputDelay;
+        }
+        else {
+          this.block.x -= dx;
+        }
+      }
+    };
+    const keyLeft = this.keyLeft;
+    const keyRight = this.keyRight;
+    if (keyLeft.isDown && keyRight.isDown) {
+      // Do nothing
+    }
+    else if (keyLeft.isDown) {
+      mover(-1);
+    }
+    else if (keyRight.isDown) {
+      mover(1);
+    }
   }
 
   private updateBlock(delta: number) {
@@ -102,6 +148,7 @@ export class MainScene extends Phaser.Scene {
       this.block.y -= 1;
       this.grid.fill(this.block.getFilled());
       this.makeNewBlock();
+      this.updateTimer = 0;
     }
   }
 
@@ -128,7 +175,7 @@ function gridToWorldPos(x: number, y: number): [number, number] {
   return [x * worldScale + worldOffsetX, y * worldScale + worldOffsetY];
 }
 
-function fillBlocks(graphics: Graphics, rgb: number) {
+function renderSpaces(graphics: Graphics, rgb: number) {
   return ([x, y]: [number, number]) => {
     const [worldX, worldY] = gridToWorldPos(x, y);
     graphics.fillStyle(rgb, 1);
@@ -137,4 +184,15 @@ function fillBlocks(graphics: Graphics, rgb: number) {
     const blockSize = worldScale - gridLineWidth;
     graphics.fillRect(blockX, blockY, blockSize, blockSize);
   };
+}
+
+export function coordIndexOf(coords: Array<[number, number]>,
+  [x, y]: [number, number]): number {
+for (let i = 0; i < coords.length; i++) {
+  const [elemX, elemY] = coords[i];
+  if (x === elemX && y === elemY) {
+    return i;
+  }
+}
+return -1;
 }
