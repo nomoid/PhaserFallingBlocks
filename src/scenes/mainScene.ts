@@ -1,7 +1,7 @@
 import 'phaser';
 import { Block, BlockType, randomBlockType } from '../block';
 import { screenHeight, screenWidth } from '../game';
-import { Grid, gridHeight, gridWidth } from '../grid';
+import { allCoords, Grid, gridHeight, gridWidth } from '../grid';
 
 import phaserPng from '../assets/phaser.png';
 
@@ -11,6 +11,8 @@ type Graphics = Phaser.GameObjects.Graphics;
 const worldScale = 25;
 // Size of line between blocks
 const gridLineWidth = 2;
+// Initial number of ms between updates
+const initialUpdateDelay = 1000;
 // 0, 0 of grid is top left corner
 let worldOffsetX: number;
 let worldOffsetY: number;
@@ -20,6 +22,8 @@ export class MainScene extends Phaser.Scene {
   private graphics!: Graphics;
   private block!: Block;
   private grid!: Grid;
+  private updateTimer: number = 0;
+  private updateDelay: number = initialUpdateDelay;
 
   constructor() {
     super({ key: 'MainScene' });
@@ -44,8 +48,9 @@ export class MainScene extends Phaser.Scene {
 
   }
 
-  public update() {
+  public update(time: number, delta: number) {
     this.render();
+    this.updateBlock(delta);
   }
 
   private render() {
@@ -76,6 +81,40 @@ export class MainScene extends Phaser.Scene {
     const height = endY - startY;
     graphics.fillStyle(0x3f3f3f, 1);
     graphics.fillRect(startX, startY, width, height);
+  }
+
+  private updateBlock(delta: number) {
+    this.updateTimer += delta;
+    while (this.updateTimer >= this.updateDelay) {
+      this.updateTimer -= this.updateDelay;
+      this.executeUpdate();
+    }
+  }
+
+  private executeUpdate() {
+    // Move the block down and check if a collision occurs
+    this.block.y += 1;
+    // If one does, move the block back and freeze it
+    if (this.checkBlockValid()) {
+      // TODO
+    }
+  }
+
+  // false: invalid space
+  private checkBlockValid(): boolean {
+    const blockSpaces = this.block.getFilled();
+    const outOfBoundsSpaces =
+      blockSpaces.filter(([x, y]) => allCoords().indexOf([x, y]) < 0);
+    if (outOfBoundsSpaces.length > 0) {
+      return false;
+    }
+    const gridSpaces = this.grid.getFilled();
+    const overlapSpaces =
+      blockSpaces.filter(([x, y]) => gridSpaces.indexOf([x, y]) >= 0);
+    if (overlapSpaces.length > 0) {
+      return false;
+    }
+    return true;
   }
 }
 
