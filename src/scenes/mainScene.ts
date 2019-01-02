@@ -41,6 +41,8 @@ export class MainScene extends Phaser.Scene {
   private inputTimer: number = 0;
   private inputDelay: number = initialInputDelay;
 
+  private gameOver: boolean = false;
+
   constructor() {
     super({ key: 'MainScene' });
 
@@ -71,6 +73,9 @@ export class MainScene extends Phaser.Scene {
 
   public update(time: number, delta: number) {
     this.render();
+    if (this.gameOver) {
+      return;
+    }
     this.updateInput(delta);
     this.updateBlock(delta);
   }
@@ -177,6 +182,9 @@ export class MainScene extends Phaser.Scene {
       this.grid.fill(this.block.getFilled());
       this.grid.tryClear();
       this.makeNewBlock();
+      if (!this.checkBlockValid()){
+        this.gameOver = true;
+      }
       this.updateTimer = 0;
       return true;
     }
