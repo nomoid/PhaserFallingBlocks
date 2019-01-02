@@ -1,7 +1,7 @@
 import 'phaser';
-import { Block, BlockType, randomBlockType } from '../block';
-import { screenHeight, screenWidth } from '../game';
-import { allCoords, Grid, gridHeight, gridWidth } from '../grid';
+import { Block, randomBlockType, coordIndexOf } from '../block';
+import { screenWidth, screenHeight } from '../game';
+import { Grid, allCoords, gridWidth, gridHeight } from '../grid';
 
 import phaserPng from '../assets/phaser.png';
 
@@ -95,22 +95,23 @@ export class MainScene extends Phaser.Scene {
     // Move the block down and check if a collision occurs
     this.block.y += 1;
     // If one does, move the block back and freeze it
-    if (this.checkBlockValid()) {
-      // TODO
+    if (!this.checkBlockValid()) {
+      this.block.y -= 1;
     }
   }
 
   // false: invalid space
   private checkBlockValid(): boolean {
     const blockSpaces = this.block.getFilled();
+    const validCoords = allCoords();
     const outOfBoundsSpaces =
-      blockSpaces.filter(([x, y]) => allCoords().indexOf([x, y]) < 0);
+      blockSpaces.filter(([x, y]) => coordIndexOf(validCoords, [x, y]) < 0);
     if (outOfBoundsSpaces.length > 0) {
       return false;
     }
     const gridSpaces = this.grid.getFilled();
     const overlapSpaces =
-      blockSpaces.filter(([x, y]) => gridSpaces.indexOf([x, y]) >= 0);
+      blockSpaces.filter(([x, y]) => coordIndexOf(gridSpaces, [x, y]) >= 0);
     if (overlapSpaces.length > 0) {
       return false;
     }

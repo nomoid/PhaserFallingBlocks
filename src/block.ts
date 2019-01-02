@@ -61,3 +61,14 @@ export function blockTypeToCoords(type: BlockType): Array<[number, number]> {
 export function randomBlockType(): BlockType {
   return Math.floor(Math.random() * typeCount);
 }
+
+export function coordIndexOf(coords: Array<[number, number]>,
+    [x, y]: [number, number]): number {
+  for (let i = 0; i < coords.length; i++) {
+    const [elemX, elemY] = coords[i];
+    if (x === elemX && y === elemY) {
+      return i;
+    }
+  }
+  return -1;
+}

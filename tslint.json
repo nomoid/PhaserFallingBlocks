@@ -16,6 +16,10 @@
       "trailing-comma": false,
       "one-line": [true, "check-open-brace"],
       "align": [true, "statements", "members"],
+      "ordered-imports": [true, {
+        "import-sources-order": "case-insensitive",
+        "named-imports-order": "any"
+      }],
       //For debugging
       "no-console": false
     },
