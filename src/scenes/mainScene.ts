@@ -12,7 +12,7 @@ const worldScale = 25;
 // Size of line between blocks
 const gridLineWidth = 2;
 // Initial number of ms between updates
-const initialUpdateDelay = 1000;
+const initialUpdateDelay = 500;
 // 0, 0 of grid is top left corner
 let worldOffsetX: number;
 let worldOffsetY: number;
@@ -39,18 +39,21 @@ export class MainScene extends Phaser.Scene {
   public create() {
     this.graphics = this.add.graphics();
 
-    this.block = new Block(randomBlockType(), gridWidth / 2);
+    this.makeNewBlock();
     this.grid = new Grid();
 
     this.input.on('pointerdown', (event: any) => {
-      this.block = new Block(randomBlockType(), gridWidth / 2);
+      this.makeNewBlock();
     });
-
   }
 
   public update(time: number, delta: number) {
     this.render();
     this.updateBlock(delta);
+  }
+
+  private makeNewBlock() {
+    this.block = new Block(randomBlockType(), gridWidth / 2);
   }
 
   private render() {
@@ -70,7 +73,7 @@ export class MainScene extends Phaser.Scene {
     this.renderGridBackground();
     this.grid.getEmpty().forEach(fillBlocks(this.graphics, 0x000000));
     // Render filled grid spaces
-    this.grid.getFilled().forEach(fillBlocks(this.graphics, 0x00007f));
+    this.grid.getFilled().forEach(fillBlocks(this.graphics, 0x7f7fff));
   }
 
   private renderGridBackground() {
@@ -97,6 +100,8 @@ export class MainScene extends Phaser.Scene {
     // If one does, move the block back and freeze it
     if (!this.checkBlockValid()) {
       this.block.y -= 1;
+      this.grid.fill(this.block.getFilled());
+      this.makeNewBlock();
     }
   }
 

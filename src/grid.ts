@@ -13,6 +13,12 @@ export class Grid {
   public getEmpty(): Array<[number, number]> {
     return allCoords().filter(([x, y]) => !this.spaces[x][y]);
   }
+
+  public fill(coords: Array<[number, number]>) {
+    for (const [x, y] of coords) {
+      this.spaces[x][y] = true;
+    }
+  }
 }
 
 // Populate an empty grid
