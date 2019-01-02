@@ -1,9 +1,12 @@
 import { MainScene } from './scenes/mainScene';
 
+export const screenWidth = 800;
+export const screenHeight = 600;
+
 const config: GameConfig = {
   type: Phaser.AUTO,
-  width: 800,
-  height: 600,
+  width: screenWidth,
+  height: screenHeight,
   scene: [MainScene],
 };
 

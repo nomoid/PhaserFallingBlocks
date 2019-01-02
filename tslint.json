@@ -15,7 +15,9 @@
       "object-literal-sort-keys": false,
       "trailing-comma": false,
       "one-line": [true, "check-open-brace"],
-      "align": [true, "statements", "members"]
+      "align": [true, "statements", "members"],
+      //For debugging
+      "no-console": false
     },
     "jsRules": {
       "max-line-length": {

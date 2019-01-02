@@ -11,13 +11,14 @@ export class Block {
   // Rotation
   public rotation: number = 0;
 
-  public constructor(type: BlockType) {
+  public constructor(type: BlockType, x: number) {
     this.type = type;
+    this.x = x;
   }
 
-  public fill(filler: (x: number, y: number) => void) {
-    blockTypeToCoords(this.type).forEach(([relX, relY]) => {
-      filler(this.x + relX, this.y + relY);
+  public getFilled(): Array<[number, number]> {
+    return blockTypeToCoords(this.type).map(([relX, relY]) => {
+      return [this.x + relX, this.y + relY] as [number, number];
     });
   }
 }
@@ -41,15 +42,15 @@ export enum BlockType {
 export function blockTypeToCoords(type: BlockType): Array<[number, number]> {
   switch (type) {
     case BlockType.I:
-      return [[0, -1], [0, 0], [0, 1], [0, 2]];
+      return [[0, 0], [0, 1], [0, 2], [0, 3]];
     case BlockType.O:
       return [[0, 0], [0, 1], [1, 1], [1, 0]];
     case BlockType.T:
       return [[-1, 0], [0, 0], [1, 0], [0, 1]];
     case BlockType.J:
-      return [[0, -1], [0, 0], [0, 1], [-1, 1]];
+      return [[0, 0], [0, 1], [0, 2], [-1, 2]];
     case BlockType.L:
-      return [[0, -1], [0, 0], [0, 1], [1, 1]];
+      return [[0, 0], [0, 1], [0, 2], [1, 2]];
     case BlockType.S:
       return [[1, 0], [0, 0], [0, 1], [-1, 1]];
     case BlockType.Z:
