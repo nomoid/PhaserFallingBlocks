@@ -37,6 +37,8 @@ export class Grid {
             this.spaces[j][k + 1] = this.spaces[j][k];
           }
         }
+        // Recheck the same row if a row is cleared
+        i += 1;
       }
     }
   }
